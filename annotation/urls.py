@@ -6,7 +6,9 @@ from django.views.static import serve
 from .views import *
 
 urlpatterns = [
-    path('', AdminPageView.as_view(), name='home'),
+    path('', HomePageView.as_view(), name='home'),
+    path('create_leader/', LeaderCreateView.as_view(), name='leader_create'),
+    path('batch_upload/', BatchUploadView.as_view(), name='batch_upload'),
 ]
 
 if settings.DEBUG:

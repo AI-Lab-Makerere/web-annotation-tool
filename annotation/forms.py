@@ -18,3 +18,18 @@ class TeamLeaderModelForm(forms.ModelForm):
             'username',
             'category',
         ]
+
+
+class BatchModelForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(BatchModelForm, self).__init__(*args, **kwargs)
+        self.fields['batch_name'].required = True
+        self.fields['batch_file'].required = True
+
+    class Meta:
+        model = Batch
+        fields = [
+            'batch_name',
+            'batch_file',
+        ]

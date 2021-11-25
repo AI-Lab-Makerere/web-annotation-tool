@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<main>
+    <div class="heading">
+        <p class="head_lead">Upload a Batch</p>
+    </div>
+    <div class="body">
+        <div class="leader">
+            <form method="post">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="submit">
+                    <button type="submit" class="btn btn-success btn-sm" style="width: 100px">Upload</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+{% endblock content %}

@@ -35,3 +35,26 @@ class Leader(models.Model):
 
     def __str__(self):
         return self.user.username
+
+
+class Annotator(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    leader = models.ForeignKey(Leader, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.user.username
+
+
+class Batch(models.Model):
+    leader = models.ForeignKey(Leader, null=True, blank=True, on_delete=models.SET_NULL)
+    annotator = models.ForeignKey(Annotator, null=True, blank=True, on_delete=models.SET_NULL)
+    batch_name = models.CharField(max_length=255)
+    batch_file = models.FileField(upload_to='files', blank=True)
+    is_annotated = models.BooleanField(default=False)
+    is_annotated_twice = models.BooleanField(default=False)
+    annotated_file = models.FileField(upload_to='files', blank=True)
+    review = models.CharField(max_length=255)
+    comment = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return self.batch_name

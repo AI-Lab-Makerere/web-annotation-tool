@@ -3,7 +3,7 @@
 {% block content %}
     <main>
         <div class="heading">
-            <p class="head_lead">Login</p>
+            <p class="head_lead">Create A Team leader</p>
         </div>
         <div class="body">
             <div class="leader">
@@ -11,12 +11,10 @@
                     {% csrf_token %}
                     {{ form|crispy }}
                     <div class="submit">
-                        <button type="submit" class="btn btn-secondary btn-sm" style="width: 100px">Login</button>
-                        <a href="{% url 'reset_password' %}" class="forgot btn btn-primary btn-sm">Forgot Password</a>
+                        <button type="submit" class="btn btn-success btn-sm" style="width: 100px">Create</button>
                     </div>
                 </form>
             </div>
         </div>
     </main>
-
 {% endblock content %}

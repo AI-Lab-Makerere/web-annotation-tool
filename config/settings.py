@@ -128,8 +128,8 @@ STATICFILES_DIRS = [
 
 AUTH_USER_MODEL = 'annotation.CustomUser'
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media_cdn')
+MEDIA_URL = "/files/"
+MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 
 STATIC_ROOT = "static_root"
 
@@ -138,6 +138,10 @@ LOGOUT_REDIRECT_URL = '/login'
 LOGIN_URL = '/login'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+# this code shows the emails sent in the IDE terminal
+# if you want to configure this to point to a real mailing server then edit this code below
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

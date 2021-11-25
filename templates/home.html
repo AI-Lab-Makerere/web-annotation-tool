@@ -1,32 +1,23 @@
+{% extends 'base.html' %}
 {% load static %}
-{% load crispy_forms_tags %}
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-
-    <title>{{ name }}</title>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-</head>
-<body>
-    {{ name | json_script:"pn" }}
+{% block content %}
     {{ categories | json_script:"cat" }}
-
-    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top d-flex justify-content-between">
-        <a class="navbar-brand tit" href="#"></a>
-        <span><a href="{% url 'login' %}" style="color:black" class="nav-link">Login</a></span>
-    </nav>
-
     <main>
         <div class="heading">
             <h4 class="title"></h4>
-            <p>This tool enables you to the project name, create, change and delete team leaders and also view the annotation progress for you project</p>
+            {% if request.user.is_admin %}
+                <p>This tool enables you to create the project name, create categories, create team leaders and also view the
+                    annotation progress for the project.</p>
+            {% elif request.user.is_team_leader %}
+                <p>This tool enables you to create and manage annotators, upload batches to annotate
+                    assign batches to annotators and review annotated batches.</p>
+                <span style="font-weight: bold; color: #919293">You are the Team Leader for {{ category }}</span>
+            {% endif %}
+
         </div>
         <div class="body">
-            <div class="row">
+            {% if request.user.is_admin %}
+                <div class="row">
                 <div class="col-sm-4">
                     <div class="card" style="width: 100%;">
                         <div class="card-body">
@@ -81,56 +72,42 @@
                             <span class="card-title">Create Team leader</span>
                             <p class="card-text" style="font-size: 12px; margin-top: 10px">A team lead is one who is
                                 response for a given category. Responsibilities include uploading batches
-                                for annotation, managing annotators and reviewing annotations</p>
+                                for annotation, managing annotators and reviewing annotations. <strong>For you to create a team leader you need to have created at least one category where they will belong to.</strong></p>
                             <form style="margin-top: 10px">
                                 <div class="form-row align-items-center">
                                     <div class="col-auto">
-                                        <a id="team" class="btn btn-secondary mb-2 ml-2 text-light">Creat Team Leader</a>
+                                        <a id="team" class="btn btn-secondary mb-2 ml-2 text-light" href="{% url 'leader_create' %}">Creat Team Leader</a>
                                     </div>
                                     <div class="invalid-feedback" id="team-error">
                                     </div>
                                 </div>
                             </form>
-                            <div class="myTable" style="margin-top: 10px; display: none">
-                                <table class="table table-striped">
-                                    <thead>
-                                    <tr style="font-size: 13px" class="text-center">
-                                        <th scope="col">Category</th>
-                                        <th scope="col">Team Leader</th>
-                                        <th scope="col">Annotators</th>
-                                        <th scope="col">Batches</th>
-                                        <th scope="col">Annotated</th>
-                                        <th scope="col">Change Team leader</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr style="font-size: 13px" class="text-center">
-                                        <td>Maize</td>
-                                        <td>John</td>
-                                        <td>12</td>
-                                        <td>20,000</td>
-                                        <td>17,000</td>
-                                        <td><button type="submit" class="btn btn-sm btn-secondary">Change</button></td>
-                                    </tr>
-                                    <tr style="font-size: 13px" class="text-center">
-                                        <td>Beans</td>
-                                        <td>Jack</td>
-                                        <td>16</td>
-                                        <td>20,000</td>
-                                        <td>17,000</td>
-                                        <td><button type="submit" class="btn btn-sm btn-secondary">Change</button></td>
-                                    </tr>
-                                    <tr style="font-size: 13px" class="text-center">
-                                        <td>Cassava</td>
-                                        <td>Matty</td>
-                                        <td>4</td>
-                                        <td>20,000</td>
-                                        <td>17,000</td>
-                                        <td><button type="submit" class="btn btn-sm btn-secondary">Change</button></td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                            {% if leaders %}
+                                <div class="myTable table-wrapper-scroll-y my-custom-scrollbar" style="margin-top: 10px; display: block">
+                                    <table class="table table-striped">
+                                        <thead>
+                                        <tr style="font-size: 13px" class="text-center">
+                                            <th scope="col">Category</th>
+                                            <th scope="col">Team Leader</th>
+                                            <th scope="col">Annotators</th>
+                                            <th scope="col">Batches</th>
+                                            <th scope="col">Annotated</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for leader in leaders %}
+                                        <tr style="font-size: 13px" class="text-center">
+                                            <td>{{ leader.user.category.category }}</td>
+                                            <td>{{ leader.user.username }}</td>
+                                            <td>{{ leader.annotators }}</td>
+                                            <td>{{ leader.uploads }}</td>
+                                            <td>{{ leader.annotated }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -180,26 +157,142 @@
                     </div>
                 </div>
             </div>
+            {% elif request.user.is_team_leader %}
+                <div class="row">
+                <div class="col-sm-3">
+                    <div class="card" style="width: 100%;">
+                        <div class="card-body">
+                            <span class="card-title">Upload a batch for {{ category }}</span>
+                            <p class="card-text" style="font-size: 12px; margin-top: 10px">Upload a text file that has url links to the images to be annotated</p>
+                            <a href="{% url 'batch_upload' %}" class="upload btn btn-secondary btn-sm">Upload Batch</a>
+                            <p class="card-text" style="font-size: 12px; margin-top: 10px">Example of text file to upload</p>
+                            <img src="{% static 'images/batch.jpg' %}" alt="" class="img">
+                        </div>
+                    </div>
+
+<!--                    <div class="card mt-2" style="width: 100%;">-->
+<!--                        <div class="card-body">-->
+<!--                            <span class="card-title">Provide Categories</span>-->
+<!--                            <p class="card-text" style="font-size: 12px; margin-top: 10px">If you have more than one-->
+<!--                                item to annotate for example for crops you may have maize, beans, cassava.-->
+<!--                                Then you need to create a category for each.</p>-->
+<!--                            <form style="margin-top: 10px">-->
+<!--                                <div class="form-row align-items-center">-->
+<!--                                    {% csrf_token %}-->
+<!--                                    <div class="col-auto">-->
+<!--                                        <input id="category" type="text" class="form-control mb-2 mr-5" placeholder="Category Name">-->
+<!--                                    </div>-->
+<!--                                    <div class="col-auto">-->
+<!--                                        <a id="cat-submit" class="btn btn-secondary mb-2 ml-2 text-light">Submit</a>-->
+<!--                                    </div>-->
+<!--                                    <div class="invalid-feedback" id="cat-error">-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </form>-->
+<!--                            <div class="list">-->
+
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+                </div>
+<!--                <div class="col-sm-8">-->
+<!--                    <div class="card" style="width: 100%;">-->
+<!--                        <div class="card-body">-->
+<!--                            <span class="card-title">Create Team leader</span>-->
+<!--                            <p class="card-text" style="font-size: 12px; margin-top: 10px">A team lead is one who is-->
+<!--                                response for a given category. Responsibilities include uploading batches-->
+<!--                                for annotation, managing annotators and reviewing annotations. <strong>For you to create a team leader you need to have created at least one category where they will belong to.</strong></p>-->
+<!--                            <form style="margin-top: 10px">-->
+<!--                                <div class="form-row align-items-center">-->
+<!--                                    <div class="col-auto">-->
+<!--                                        <a id="team" class="btn btn-secondary mb-2 ml-2 text-light" href="{% url 'leader_create' %}">Creat Team Leader</a>-->
+<!--                                    </div>-->
+<!--                                    <div class="invalid-feedback" id="team-error">-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </form>-->
+<!--                            {% if leaders %}-->
+<!--                            <div class="myTable table-wrapper-scroll-y my-custom-scrollbar" style="margin-top: 10px; display: block">-->
+<!--                                <table class="table table-striped">-->
+<!--                                    <thead>-->
+<!--                                    <tr style="font-size: 13px" class="text-center">-->
+<!--                                        <th scope="col">Category</th>-->
+<!--                                        <th scope="col">Team Leader</th>-->
+<!--                                        <th scope="col">Annotators</th>-->
+<!--                                        <th scope="col">Batches</th>-->
+<!--                                        <th scope="col">Annotated</th>-->
+<!--                                    </tr>-->
+<!--                                    </thead>-->
+<!--                                    <tbody>-->
+<!--                                    {% for leader in leaders %}-->
+<!--                                    <tr style="font-size: 13px" class="text-center">-->
+<!--                                        <td>{{ leader.user.category.category }}</td>-->
+<!--                                        <td>{{ leader.user.username }}</td>-->
+<!--                                        <td>{{ leader.annotators }}</td>-->
+<!--                                        <td>{{ leader.uploads }}</td>-->
+<!--                                        <td>{{ leader.annotated }}</td>-->
+<!--                                    </tr>-->
+<!--                                    {% endfor %}-->
+<!--                                    </tbody>-->
+<!--                                </table>-->
+<!--                            </div>-->
+<!--                            {% endif %}-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+<!--                    <div class="card mt-2" style="width: 100%;">-->
+<!--                        <div class="card-body">-->
+<!--                            <span class="card-title">Annotation Progress</span>-->
+<!--                            <p class="card-text" style="font-size: 12px; margin-top: 10px">These are the batches that-->
+<!--                                have been annotated and reviewed by the team leaders. You can also review these-->
+<!--                                annotations or download them for further analysis</p>-->
+<!--                            <div class="myTable" style="margin-top: 10px; display: none">-->
+<!--                                <table class="table table-striped">-->
+<!--                                    <thead>-->
+<!--                                    <tr style="font-size: 13px" class="text-center">-->
+<!--                                        <th scope="col">Category</th>-->
+<!--                                        <th scope="col">Team Leader</th>-->
+<!--                                        <th scope="col">Annotator</th>-->
+<!--                                        <th scope="col">Annotated File</th>-->
+<!--                                        <th scope="col">Uploaded On</th>-->
+<!--                                    </tr>-->
+<!--                                    </thead>-->
+<!--                                    <tbody>-->
+<!--                                    <tr style="font-size: 13px" class="text-center">-->
+<!--                                        <td>Maize</td>-->
+<!--                                        <td>John</td>-->
+<!--                                        <td>James</td>-->
+<!--                                        <td><button type="submit" class="btn btn-sm btn-secondary">Download</button></td>-->
+<!--                                        <td>09/23/2021</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr style="font-size: 13px" class="text-center">-->
+<!--                                        <td>Beans</td>-->
+<!--                                        <td>Jack</td>-->
+<!--                                        <td>Musa</td>-->
+<!--                                        <td><button type="submit" class="btn btn-sm btn-secondary">Download</button></td>-->
+<!--                                        <td>09/23/2021</td>-->
+<!--                                    </tr>-->
+<!--                                    <tr style="font-size: 13px" class="text-center">-->
+<!--                                        <td>Cassava</td>-->
+<!--                                        <td>Matty</td>-->
+<!--                                        <td>Bosco</td>-->
+<!--                                        <td><button type="submit" class="btn btn-sm btn-secondary">Download</button></td>-->
+<!--                                        <td>09/23/2021</td>-->
+<!--                                    </tr>-->
+<!--                                    </tbody>-->
+<!--                                </table>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
+            </div>
+            {% endif %}
         </div>
     </main>
 
     <div class="popup">
         <div class="popup-content">
             <div class="close">+</div>
-            <span>Create A Team Leader</span>
-            <form method="post">
-                {% csrf_token %}
-                {{ form|crispy }}
-                <button type="submit" class="btn btn-success btn-sm">Create</button>
-            </form>
         </div>
     </div>
-
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="{% static 'js/app.js' %}"></script>
-
-</body>
-</html>
+{% endblock content %}
