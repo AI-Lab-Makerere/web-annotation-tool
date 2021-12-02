@@ -32,24 +32,37 @@ class HomePageView(LoginRequiredMixin, TemplateView):
 
         # list of team leaders
         leaders = Leader.objects.all()
-        category = 'none'
-        batch_list = []
 
         logged_in = self.request.user
         if logged_in.is_team_leader:
             category = logged_in.category
             batch_list = leader_table(logged_in)
+        elif logged_in.is_annotator:
+            annotator = Annotator.objects.filter(user=logged_in).first()
+            category = annotator.leader.user.category
 
         context = super(HomePageView, self).get_context_data(**kwargs)
 
-        context.update({
-            "name": project,
-            "categories": categories,
-            "leaders": leaders,
-            "category": category,
-            "unassigned": batch_list[0],
-            "assigned": batch_list[1],
-        })
+        if logged_in.is_team_leader:
+            context.update({
+                "name": project,
+                "category": category,
+                "unassigned": batch_list[0],
+                "assigned": batch_list[1],
+            })
+
+        elif logged_in.is_admin:
+            context.update({
+                "name": project,
+                "categories": categories,
+                "leaders": leaders,
+            })
+
+        else:
+            context.update({
+                "name": project,
+                "category": category,
+            })
 
         return context
 
