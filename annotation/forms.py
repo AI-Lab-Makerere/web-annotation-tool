@@ -20,16 +20,26 @@ class TeamLeaderModelForm(forms.ModelForm):
         ]
 
 
-class BatchModelForm(forms.ModelForm):
+class AnnotatorModelForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
-        super(BatchModelForm, self).__init__(*args, **kwargs)
-        self.fields['batch_name'].required = True
-        self.fields['batch_file'].required = True
+        super(AnnotatorModelForm, self).__init__(*args, **kwargs)
+        self.fields['email'].required = True
+        self.fields['username'].required = True
 
     class Meta:
-        model = Batch
+        model = CustomUser
         fields = [
-            'batch_name',
-            'batch_file',
+            'email',
+            'username',
         ]
+
+
+class AssignAnnotatorForm(forms.Form):
+    annotator = forms.ModelChoiceField(queryset=Annotator.objects.none())
+
+    def __init__(self, *args, **kwargs):
+        request = kwargs.pop("request")
+        annotators = Annotator.objects.filter(leader=request.user.leader)
+        super(AssignAnnotatorForm, self).__init__(*args, **kwargs)
+        self.fields["annotator"].queryset = annotators

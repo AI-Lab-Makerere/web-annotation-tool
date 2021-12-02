@@ -12,6 +12,10 @@
                 <p>This tool enables you to create and manage annotators, upload batches to annotate
                     assign batches to annotators and review annotated batches.</p>
                 <span style="font-weight: bold; color: #919293">You are the Team Leader for {{ category }}</span>
+                <div>
+                    <a href="{% url 'annotator_create' %}" class="create-annotator btn btn-secondary btn-sm" style="color: white; float: right; margin-left: 20px">Create Annotator</a>
+                    <a class="tool btn btn-secondary btn-sm" style="color: white; float: right">Annotation Tool</a>
+                </div>
             {% endif %}
 
         </div>
@@ -100,7 +104,7 @@
                                             <td>{{ leader.user.category.category }}</td>
                                             <td>{{ leader.user.username }}</td>
                                             <td>{{ leader.annotators }}</td>
-                                            <td>{{ leader.uploads }}</td>
+                                            <td>{{ leader.batches }}</td>
                                             <td>{{ leader.annotated }}</td>
                                         </tr>
                                         {% endfor %}
@@ -159,132 +163,118 @@
             </div>
             {% elif request.user.is_team_leader %}
                 <div class="row">
-                <div class="col-sm-3">
-                    <div class="card" style="width: 100%;">
-                        <div class="card-body">
-                            <span class="card-title">Upload a batch for {{ category }}</span>
-                            <p class="card-text" style="font-size: 12px; margin-top: 10px">Upload a text file that has url links to the images to be annotated</p>
-                            <a href="{% url 'batch_upload' %}" class="upload btn btn-secondary btn-sm">Upload Batch</a>
-                            <p class="card-text" style="font-size: 12px; margin-top: 10px">Example of text file to upload</p>
-                            <img src="{% static 'images/batch.jpg' %}" alt="" class="img">
+                    <div class="col-sm-3">
+                        <div class="card" style="width: 100%;">
+                            <div class="card-body">
+                                <span class="card-title">Upload a batch for {{ category }}</span>
+                                <p class="card-text" style="font-size: 12px; margin-top: 10px">Upload a text file that has url links to the images to be annotated</p>
+                                <a class="upload btn btn-secondary btn-sm" style="color: white">Upload Batch</a>
+                                <p class="card-text" style="font-size: 12px; margin-top: 10px">Example of text file to upload</p>
+                                <img src="{% static 'images/batch.jpg' %}" alt="" class="img">
+                            </div>
                         </div>
                     </div>
-
-<!--                    <div class="card mt-2" style="width: 100%;">-->
-<!--                        <div class="card-body">-->
-<!--                            <span class="card-title">Provide Categories</span>-->
-<!--                            <p class="card-text" style="font-size: 12px; margin-top: 10px">If you have more than one-->
-<!--                                item to annotate for example for crops you may have maize, beans, cassava.-->
-<!--                                Then you need to create a category for each.</p>-->
-<!--                            <form style="margin-top: 10px">-->
-<!--                                <div class="form-row align-items-center">-->
-<!--                                    {% csrf_token %}-->
-<!--                                    <div class="col-auto">-->
-<!--                                        <input id="category" type="text" class="form-control mb-2 mr-5" placeholder="Category Name">-->
-<!--                                    </div>-->
-<!--                                    <div class="col-auto">-->
-<!--                                        <a id="cat-submit" class="btn btn-secondary mb-2 ml-2 text-light">Submit</a>-->
-<!--                                    </div>-->
-<!--                                    <div class="invalid-feedback" id="cat-error">-->
-<!--                                    </div>-->
-<!--                                </div>-->
-<!--                            </form>-->
-<!--                            <div class="list">-->
-
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </div>-->
-                </div>
-<!--                <div class="col-sm-8">-->
-<!--                    <div class="card" style="width: 100%;">-->
-<!--                        <div class="card-body">-->
-<!--                            <span class="card-title">Create Team leader</span>-->
-<!--                            <p class="card-text" style="font-size: 12px; margin-top: 10px">A team lead is one who is-->
-<!--                                response for a given category. Responsibilities include uploading batches-->
-<!--                                for annotation, managing annotators and reviewing annotations. <strong>For you to create a team leader you need to have created at least one category where they will belong to.</strong></p>-->
-<!--                            <form style="margin-top: 10px">-->
-<!--                                <div class="form-row align-items-center">-->
-<!--                                    <div class="col-auto">-->
-<!--                                        <a id="team" class="btn btn-secondary mb-2 ml-2 text-light" href="{% url 'leader_create' %}">Creat Team Leader</a>-->
-<!--                                    </div>-->
-<!--                                    <div class="invalid-feedback" id="team-error">-->
-<!--                                    </div>-->
-<!--                                </div>-->
-<!--                            </form>-->
-<!--                            {% if leaders %}-->
-<!--                            <div class="myTable table-wrapper-scroll-y my-custom-scrollbar" style="margin-top: 10px; display: block">-->
-<!--                                <table class="table table-striped">-->
-<!--                                    <thead>-->
-<!--                                    <tr style="font-size: 13px" class="text-center">-->
-<!--                                        <th scope="col">Category</th>-->
-<!--                                        <th scope="col">Team Leader</th>-->
-<!--                                        <th scope="col">Annotators</th>-->
-<!--                                        <th scope="col">Batches</th>-->
-<!--                                        <th scope="col">Annotated</th>-->
-<!--                                    </tr>-->
-<!--                                    </thead>-->
-<!--                                    <tbody>-->
-<!--                                    {% for leader in leaders %}-->
-<!--                                    <tr style="font-size: 13px" class="text-center">-->
-<!--                                        <td>{{ leader.user.category.category }}</td>-->
-<!--                                        <td>{{ leader.user.username }}</td>-->
-<!--                                        <td>{{ leader.annotators }}</td>-->
-<!--                                        <td>{{ leader.uploads }}</td>-->
-<!--                                        <td>{{ leader.annotated }}</td>-->
-<!--                                    </tr>-->
-<!--                                    {% endfor %}-->
-<!--                                    </tbody>-->
-<!--                                </table>-->
-<!--                            </div>-->
-<!--                            {% endif %}-->
-<!--                        </div>-->
-<!--                    </div>-->
-
-<!--                    <div class="card mt-2" style="width: 100%;">-->
-<!--                        <div class="card-body">-->
-<!--                            <span class="card-title">Annotation Progress</span>-->
-<!--                            <p class="card-text" style="font-size: 12px; margin-top: 10px">These are the batches that-->
-<!--                                have been annotated and reviewed by the team leaders. You can also review these-->
-<!--                                annotations or download them for further analysis</p>-->
-<!--                            <div class="myTable" style="margin-top: 10px; display: none">-->
-<!--                                <table class="table table-striped">-->
-<!--                                    <thead>-->
-<!--                                    <tr style="font-size: 13px" class="text-center">-->
-<!--                                        <th scope="col">Category</th>-->
-<!--                                        <th scope="col">Team Leader</th>-->
-<!--                                        <th scope="col">Annotator</th>-->
-<!--                                        <th scope="col">Annotated File</th>-->
-<!--                                        <th scope="col">Uploaded On</th>-->
-<!--                                    </tr>-->
-<!--                                    </thead>-->
-<!--                                    <tbody>-->
-<!--                                    <tr style="font-size: 13px" class="text-center">-->
-<!--                                        <td>Maize</td>-->
-<!--                                        <td>John</td>-->
-<!--                                        <td>James</td>-->
-<!--                                        <td><button type="submit" class="btn btn-sm btn-secondary">Download</button></td>-->
-<!--                                        <td>09/23/2021</td>-->
-<!--                                    </tr>-->
-<!--                                    <tr style="font-size: 13px" class="text-center">-->
-<!--                                        <td>Beans</td>-->
-<!--                                        <td>Jack</td>-->
-<!--                                        <td>Musa</td>-->
-<!--                                        <td><button type="submit" class="btn btn-sm btn-secondary">Download</button></td>-->
-<!--                                        <td>09/23/2021</td>-->
-<!--                                    </tr>-->
-<!--                                    <tr style="font-size: 13px" class="text-center">-->
-<!--                                        <td>Cassava</td>-->
-<!--                                        <td>Matty</td>-->
-<!--                                        <td>Bosco</td>-->
-<!--                                        <td><button type="submit" class="btn btn-sm btn-secondary">Download</button></td>-->
-<!--                                        <td>09/23/2021</td>-->
-<!--                                    </tr>-->
-<!--                                    </tbody>-->
-<!--                                </table>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                </div>-->
+                    <div class="col-sm-9">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="card" style="width: 100%;">
+                                    <div class="card-body">
+                                        <span class="card-title">Summary about the Batches</span>
+                                        <div class="tableX" style="margin-top: 10px; display: block">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                <tr style="font-size: 13px" class="text-center">
+                                                    <th scope="col">Batches</th>
+                                                    <th scope="col">Assigned</th>
+                                                    <th scope="col">Awaiting Review</th>
+                                                    <th scope="col">Reviewed</th>
+                                                    <th scope="col">Fully Annotated</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                <tr style="font-size: 13px" class="text-center">
+                                                    <td>20</td>
+                                                    <td>15</td>
+                                                    <td>10</td>
+                                                    <td>2</td>
+                                                    <td>1</td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" style="margin-top: 10px">
+                            <div class="col-sm-6">
+                                <div class="card" style="width: 100%;">
+                                    <div class="card-body">
+                                        <span class="card-title">Uploaded batches</span>
+                                        <div class="unassigned table-wrapper-scroll-y my-custom-scrollbar" style="margin-top: 10px; display: block">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr style="font-size: 13px" class="text-center">
+                                                        <th scope="col">Batch</th>
+                                                        <th scope="col">Assign</th>
+                                                        <th scope="col">Uploaded On</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for batch in unassigned %}
+                                                        <tr style="font-size: 13px" class="text-center">
+                                                            <td>{{ batch.batch_name }}</td>
+                                                            <td><a href="{% url 'assign_annotator' batch.pk %}" class="btn btn-secondary btn-sm text-light">Assign Annotator</a></td>
+                                                            <td>{{ batch.last_updated }}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card" style="width: 100%; margin-top: 10px">
+                                    <div class="card-body">
+                                        <span class="card-title">Batches to Review</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="card" style="width: 100%;">
+                                    <div class="card-body">
+                                        <span class="card-title">Assigned batches</span>
+                                        <div class="unassigned table-wrapper-scroll-y my-custom-scrollbar" style="margin-top: 10px; display: block">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                <tr style="font-size: 13px" class="text-center">
+                                                    <th scope="col">Batch</th>
+                                                    <th scope="col">Annotator</th>
+                                                    <th scope="col">Assigned On</th>
+                                                    <th scope="col">Change</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for batch in assigned %}
+                                                        <tr style="font-size: 13px" class="text-center">
+                                                            <td>{{ batch.batch_name }}</td>
+                                                            <td>{{ batch.annotator }}</td>
+                                                            <td>{{ batch.last_updated }}</td>
+                                                            <td><a href="{% url 'assign_annotator' batch.pk %}" class="btn btn-secondary btn-sm text-light">Change</a></td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card" style="width: 100%; margin-top: 10px">
+                                    <div class="card-body">
+                                        <span class="card-title">Fully Annotated batches</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
             </div>
             {% endif %}
         </div>
@@ -293,6 +283,18 @@
     <div class="popup">
         <div class="popup-content">
             <div class="close">+</div>
+            <div style="text-align: center">
+                <p class="head_lead" style="font-size: 16px">Upload a Batch</p>
+                <form>
+                    <div class="form-group">
+                        {% csrf_token %}
+                        <input type="file" class="form-control-file" id="batch-file">
+                        <div class="invalid-feedback" id="upload-error">
+                        </div>
+                        <a class="btn btn-success btn-sm" id="sub" style="width: 100px; margin-top: 10px; color: #ffffff">Upload</a>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 {% endblock content %}

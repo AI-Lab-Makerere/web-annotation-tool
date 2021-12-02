@@ -30,7 +30,7 @@ class CustomUser(AbstractUser):
 class Leader(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     annotators = models.IntegerField(default=0)
-    uploads = models.IntegerField(default=0)
+    batches = models.IntegerField(default=0)
     annotated = models.IntegerField(default=0)
 
     def __str__(self):
@@ -55,6 +55,7 @@ class Batch(models.Model):
     annotated_file = models.FileField(upload_to='files', blank=True)
     review = models.CharField(max_length=255)
     comment = models.TextField(null=True, blank=True)
+    last_updated = models.DateField(auto_now_add=False, auto_now=True)
 
     def __str__(self):
         return self.batch_name

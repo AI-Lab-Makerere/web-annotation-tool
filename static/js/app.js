@@ -11,10 +11,6 @@ title.innerHTML = "Welcome to the " + project_name + " Annotation Tool"
 cat = JSON.parse(document.getElementById('cat').textContent);
 categoryList(cat);
 
-document.querySelector('.close').addEventListener('click',
-    function () {
-        document.querySelector('.popup').style.display = 'none';
-    });
 
 $(document).ready(function () {
 
