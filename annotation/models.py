@@ -53,9 +53,26 @@ class Batch(models.Model):
     is_annotated = models.BooleanField(default=False)
     is_annotated_twice = models.BooleanField(default=False)
     annotated_file = models.FileField(upload_to='files', blank=True)
-    review = models.CharField(max_length=255)
+    review = models.CharField(max_length=255, null=True, blank=True,)
     comment = models.TextField(null=True, blank=True)
+    incomplete_file = models.BooleanField(default=False)
     last_updated = models.DateField(auto_now_add=False, auto_now=True)
 
     def __str__(self):
         return self.batch_name
+
+
+class Attribute(models.Model):
+    leader = models.ForeignKey(Leader, on_delete=models.CASCADE)
+    attribute_file = models.FileField(upload_to='files', blank=True)
+
+    def __str__(self):
+        return self.leader.user.username
+
+
+class IncompleteBatch(models.Model):
+    batch = models.ForeignKey(Batch, on_delete=models.CASCADE)
+    incomplete_file = models.FileField(upload_to='files', blank=True)
+
+    def __str__(self):
+        return self.batch.batch_name

@@ -1,6 +1,8 @@
 let project_name, nav
 
 project_name = JSON.parse(document.getElementById('pn').textContent);
+let attr = JSON.parse(document.getElementById('attr').textContent);
+console.log(attr)
 
 nav = document.querySelector('.tit')
 
@@ -10,7 +12,12 @@ title.innerHTML = "Welcome to the " + project_name + " Annotation Tool"
 
 document.querySelector('.upload').addEventListener('click',
     function () {
-        document.querySelector('.popup').style.display = 'flex';
+        if (attr === 1){
+            document.querySelector('.popup').style.display = 'flex';
+        }else {
+            $('.errorX').css({'display': 'block'})
+        }
+
     });
 
 document.querySelector('.close').addEventListener('click',

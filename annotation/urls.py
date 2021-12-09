@@ -10,6 +10,7 @@ urlpatterns = [
     path('create_leader/', LeaderCreateView.as_view(), name='leader_create'),
     path('annotator_leader/', AnnotatorCreateView.as_view(), name='annotator_create'),
     path('<int:pk>/assign_annotator/', AssignAnnotatorView.as_view(), name='assign_annotator'),
+    path('via/', VGGImageAnnotator.as_view(), name='via'),
 ]
 
 if settings.DEBUG:

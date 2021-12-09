@@ -2,6 +2,7 @@
 {% load static %}
 {% block content %}
     {{ categories | json_script:"cat" }}
+    {{ attributes | json_script:"attr" }}
     <main>
         <div class="heading">
             <h4 class="title"></h4>
@@ -14,14 +15,14 @@
                 <span style="font-weight: bold; color: #919293">You are the Team Leader for {{ category }}</span>
                 <div>
                     <a href="{% url 'annotator_create' %}" class="create-annotator btn btn-secondary btn-sm" style="color: white; float: right; margin-left: 20px">Create Annotator</a>
-                    <a class="tool btn btn-secondary btn-sm" style="color: white; float: right">Annotation Tool</a>
+                    <a href="{% url 'via' %}" class="tool btn btn-secondary btn-sm" style="color: white; float: right">Annotation Tool</a>
                 </div>
             {% elif request.user.is_annotator %}
             <p>This tool enables you to annotate batches of images assigned to you and make corrections on the annotated batches
                 . You will be able to do that from the <strong>Annotation Tool</strong></p>
             <span style="font-weight: bold; color: #919293">You will be annotating batches for {{ category }}</span>
             <div>
-                <a class="tool btn btn-secondary btn-sm" style="color: white; float: right">Annotation Tool</a>
+                <a href="{% url 'via' %}" class="tool btn btn-secondary btn-sm" style="color: white; float: right">Annotation Tool</a>
             </div>
             {% endif %}
 
@@ -176,6 +177,9 @@
                                 <span class="card-title">Upload a batch for {{ category }}</span>
                                 <p class="card-text" style="font-size: 12px; margin-top: 10px">Upload a text file that has url links to the images to be annotated</p>
                                 <a class="upload btn btn-secondary btn-sm" style="color: white">Upload Batch</a>
+                                <div class="invalid-feedback errorX">
+                                    Please first access the Annotation tool then create and upload the attributes file
+                                </div>
                                 <p class="card-text" style="font-size: 12px; margin-top: 10px">Example of text file to upload</p>
                                 <img src="{% static 'images/batch.jpg' %}" alt="" class="img">
                             </div>
@@ -200,11 +204,11 @@
                                                 </thead>
                                                 <tbody>
                                                 <tr style="font-size: 13px" class="text-center">
-                                                    <td>20</td>
-                                                    <td>15</td>
-                                                    <td>10</td>
-                                                    <td>2</td>
-                                                    <td>1</td>
+                                                    <td>{{ batches }}</td>
+                                                    <td>{{ assigned2 }}</td>
+                                                    <td>{{ awaitingXC }}</td>
+                                                    <td></td>
+                                                    <td></td>
                                                 </tr>
                                                 </tbody>
                                             </table>
@@ -243,6 +247,26 @@
                                 <div class="card" style="width: 100%; margin-top: 10px">
                                     <div class="card-body">
                                         <span class="card-title">Batches to Review</span>
+                                        <div class="unassigned table-wrapper-scroll-y my-custom-scrollbar" style="margin-top: 10px; display: block">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                <tr style="font-size: 13px" class="text-center">
+                                                    <th scope="col">Batch</th>
+                                                    <th scope="col">Annotator</th>
+                                                    <th scope="col">Uploaded On</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for batch in awaiting %}
+                                                        <tr style="font-size: 13px" class="text-center">
+                                                            <td>{{ batch.batch_name }}</td>
+                                                            <td>{{ batch.annotator }}</td>
+                                                            <td>{{ batch.last_updated }}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -257,7 +281,7 @@
                                                     <th scope="col">Batch</th>
                                                     <th scope="col">Annotator</th>
                                                     <th scope="col">Assigned On</th>
-                                                    <th scope="col">Change</th>
+                                                    <th scope="col">Status</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
@@ -266,7 +290,12 @@
                                                             <td>{{ batch.batch_name }}</td>
                                                             <td>{{ batch.annotator }}</td>
                                                             <td>{{ batch.last_updated }}</td>
-                                                            <td><a href="{% url 'assign_annotator' batch.pk %}" class="btn btn-secondary btn-sm text-light">Change</a></td>
+                                                            {% if batch.incomplete_file %}
+                                                                <td>Incomplete</td>
+                                                            {% else %}
+                                                                <td><a href="{% url 'assign_annotator' batch.pk %}" class="btn btn-secondary btn-sm text-light">Change</a></td>
+                                                            {% endif %}
+
                                                         </tr>
                                                     {% endfor %}
                                                 </tbody>
@@ -299,19 +328,23 @@
                                     <tbody>
                                         <tr>
                                             <td>Assigned</td>
-                                            <td>3</td>
+                                            <td>{{ anno_assigned }}</td>
+                                        </tr>
+                                         <tr>
+                                            <td>Incomplete</td>
+                                            <td>{{ incompleteX }}</td>
                                         </tr>
                                         <tr>
                                             <td>Awaiting Review</td>
-                                            <td>1</td>
+                                            <td>{{ awaitingC }}</td>
                                         </tr>
                                         <tr>
                                             <td>Reviewed</td>
-                                            <td>1</td>
+                                            <td></td>
                                         </tr>
                                         <tr>
                                             <td>Completed</td>
-                                            <td>1</td>
+                                            <td></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -329,18 +362,18 @@
                                                 <thead>
                                                 <tr style="font-size: 13px" class="text-center">
                                                     <th scope="col">Batch</th>
-                                                    <th scope="col">Assign</th>
-                                                    <th scope="col">Uploaded On</th>
+                                                    <th scope="col">Assigned On</th>
+                                                    <th scope="col">Incomplete</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
-<!--                                                {% for batch in unassigned %}-->
-<!--                                                <tr style="font-size: 13px" class="text-center">-->
-<!--                                                    <td>{{ batch.batch_name }}</td>-->
-<!--                                                    <td><a href="{% url 'assign_annotator' batch.pk %}" class="btn btn-secondary btn-sm text-light">Assign Annotator</a></td>-->
-<!--                                                    <td>{{ batch.last_updated }}</td>-->
-<!--                                                </tr>-->
-<!--                                                {% endfor %}-->
+                                                {% for batch in batch_assign %}
+                                                <tr style="font-size: 13px" class="text-center">
+                                                    <td>{{ batch.batch_name }}</td>
+                                                    <td>{{ batch.last_updated }}</td>
+                                                    <td>{{ batch.incomplete_file }}</td>
+                                                </tr>
+                                                {% endfor %}
                                                 </tbody>
                                             </table>
                                         </div>
@@ -361,20 +394,16 @@
                                                 <thead>
                                                 <tr style="font-size: 13px" class="text-center">
                                                     <th scope="col">Batch</th>
-                                                    <th scope="col">Annotator</th>
-                                                    <th scope="col">Assigned On</th>
-                                                    <th scope="col">Change</th>
+                                                    <th scope="col">Annotated On</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
-<!--                                                {% for batch in assigned %}-->
-<!--                                                <tr style="font-size: 13px" class="text-center">-->
-<!--                                                    <td>{{ batch.batch_name }}</td>-->
-<!--                                                    <td>{{ batch.annotator }}</td>-->
-<!--                                                    <td>{{ batch.last_updated }}</td>-->
-<!--                                                    <td><a href="{% url 'assign_annotator' batch.pk %}" class="btn btn-secondary btn-sm text-light">Change</a></td>-->
-<!--                                                </tr>-->
-<!--                                                {% endfor %}-->
+                                                    {% for batch in awaitingX %}
+                                                        <tr style="font-size: 13px" class="text-center">
+                                                            <td>{{ batch.batch_name }}</td>
+                                                            <td>{{ batch.last_updated }}</td>
+                                                        </tr>
+                                                    {% endfor %}
                                                 </tbody>
                                             </table>
                                         </div>

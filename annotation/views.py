@@ -17,8 +17,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 # Create your views here.
 class HomePageView(LoginRequiredMixin, TemplateView):
     template_name = 'home.html'
-    form_class = TeamLeaderModelForm
-    success_url = reverse_lazy('home')
 
     def get_context_data(self, **kwargs):
 
@@ -38,8 +36,8 @@ class HomePageView(LoginRequiredMixin, TemplateView):
             category = logged_in.category
             batch_list = leader_table(logged_in)
         elif logged_in.is_annotator:
-            annotator = Annotator.objects.filter(user=logged_in).first()
-            category = annotator.leader.user.category
+            category = logged_in.category
+            batch_li = annotator_table(logged_in)
 
         context = super(HomePageView, self).get_context_data(**kwargs)
 
@@ -49,6 +47,11 @@ class HomePageView(LoginRequiredMixin, TemplateView):
                 "category": category,
                 "unassigned": batch_list[0],
                 "assigned": batch_list[1],
+                "attributes": batch_list[2],
+                "batches": batch_list[3].count(),
+                "assigned2": batch_list[4].count(),
+                "awaiting": batch_list[5],
+                "awaitingXC": batch_list[5].count(),
             })
 
         elif logged_in.is_admin:
@@ -62,6 +65,11 @@ class HomePageView(LoginRequiredMixin, TemplateView):
             context.update({
                 "name": project,
                 "category": category,
+                "anno_assigned": batch_li[3].count(),
+                "batch_assign": batch_li[0],
+                "awaitingX": batch_li[1],
+                "awaitingC": batch_li[1].count(),
+                "incompleteX": batch_li[2].count(),
             })
 
         return context
@@ -149,12 +157,13 @@ class AnnotatorCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         user = form.save(commit=False)
+        logged_in = self.request.user
         user.is_admin = False
         user.is_team_leader = False
         user.is_annotator = True
         user.set_password(f"{random.randint(0, 1000000)}")
+        user.category = logged_in.category
         user.save()
-        logged_in = self.request.user
         Annotator.objects.create(
             user=user,
             leader=logged_in.leader,
@@ -191,6 +200,126 @@ class AssignAnnotatorView(LoginRequiredMixin, FormView):
         return super(AssignAnnotatorView, self).form_valid(form)
 
 
+class VGGImageAnnotator(LoginRequiredMixin, TemplateView):
+    template_name = 'via.html'
+
+    def get_context_data(self, **kwargs):
+        # project name
+        project = project_name()
+
+        logged_in = self.request.user
+        category = logged_in.category.category
+
+        if logged_in.is_annotator:
+            batch = annotator_table(logged_in)
+        elif logged_in.is_team_leader:
+            batc = leader_table(logged_in)
+
+        context = super(VGGImageAnnotator, self).get_context_data(**kwargs)
+
+        if logged_in.is_team_leader:
+            context.update({
+                "name": project,
+                "category": category,
+                "awaiting": batc[5],
+                "attributes": batc[2],
+            })
+        else:
+            context.update({
+                "name": project,
+                "category": category,
+                "assigned": batch[4],
+                "incomplete": batch[5],
+            })
+
+        return context
+
+    def post(self, request):
+        if request.method == 'POST':
+            if request.POST.get('action') == 'attributes':
+                filename = request.POST.get('filename')
+                file = request.FILES.get('file')
+
+                logged_in = self.request.user.leader
+                path = default_storage.save('files/' + filename, file)
+                query = Attribute.objects.filter(leader=logged_in)
+                if query.exists():
+                    query.update(attribute_file=path)
+                else:
+                    Attribute.objects.create(leader=logged_in, attribute_file=path)
+                output = "successful"
+
+            elif request.POST.get('action') == 'load_attributes':
+                logged_in = self.request.user
+                leader = logged_in.annotator.leader
+                file = Attribute.objects.get(leader=leader)
+                json_file = file.attribute_file.name
+                f = open('uploads/' + json_file, 'r')
+                output = json.load(f)
+
+            elif request.POST.get('action') == 'load_file':
+                pk = request.POST.get('pk')
+                file = Batch.objects.get(pk=pk)
+                text_file = file.batch_file.name
+                f = open('uploads/' + text_file, 'r')
+                data = f.read()
+                output = data
+
+            elif request.POST.get('action') == 'save_file':
+                filename = request.POST.get('filename')
+                file = request.FILES.get('file')
+                pk = request.POST.get('pk')
+
+                path = default_storage.save('files/' + filename, file)
+                batch = Batch.objects.filter(pk=pk)
+                incomplete = IncompleteBatch.objects.filter(batch=batch.first())
+
+                if incomplete.exists():
+                    incomplete.delete()
+                    batch.update(is_annotated=True, annotated_file=path, incomplete_file=False)
+                else:
+                    batch.update(is_annotated=True, annotated_file=path)
+                output = "successful"
+
+            elif request.POST.get('action') == 'save_incomplete_file':
+                filename = request.POST.get('filename')
+                file = request.FILES.get('file')
+                pk = request.POST.get('pk')
+
+                path = default_storage.save('files/' + filename, file)
+                batch = Batch.objects.get(pk=pk)
+                query = IncompleteBatch.objects.filter(batch=batch)
+                if query.exists():
+                    query.update(incomplete_file=path)
+                else:
+                    IncompleteBatch.objects.create(batch=batch, incomplete_file=path)
+                    Batch.objects.filter(pk=pk).update(incomplete_file=True)
+                output = "successful"
+
+            elif request.POST.get('action') == 'load_incomplete_file':
+                pk = request.POST.get('pk')
+                file = IncompleteBatch.objects.get(pk=pk)
+                json_file = file.incomplete_file.name
+                f = open('uploads/' + json_file, 'r')
+                json_data = json.load(f)
+                output = json_data
+
+            # elif request.POST.get('action') == 'load_file_for_review':
+            else:
+                pk = request.POST.get('pk')
+                file = Batch.objects.get(pk=pk)
+                json_file = file.annotated_file.name
+                f = open('uploads/' + json_file, 'r')
+                json_data = json.load(f)
+                output = json_data
+
+            my_context = {
+                "upload": output
+            }
+
+            return HttpResponse(json.dumps(my_context, indent=4, sort_keys=True, default=str), content_type='application/json')
+
+
 def project_name():
     project_name = Name.objects.all()
     if project_name.exists():
@@ -202,10 +331,28 @@ def project_name():
 
 
 def leader_table(user):
-    leader = Leader.objects.filter(user=user).first()
-    batches1 = Batch.objects.filter(leader=leader).filter(annotator__isnull=True)
-    batches2 = Batch.objects.filter(leader=leader).filter(annotator__isnull=False).filter(is_annotated=False)
+    batch = Batch.objects.filter(leader=user.leader)
+    batches1 = batch.filter(annotator__isnull=True)
+    batches3 = batch.filter(annotator__isnull=False)
+    batches2 = batches3.filter(is_annotated=False)
+    attributes = Attribute.objects.filter(leader=user.leader).count()
+    awaiting = batches3.filter(is_annotated=True, review__isnull=True, incomplete_file=False)
+    print(awaiting)
 
-    batches_list = [batches1, batches2]
+    batches_list = [batches1, batches2, attributes, batch, batches3, awaiting]
 
     return batches_list
+
+
+def annotator_table(user):
+    batch = Batch.objects.filter(annotator=user.annotator)
+    assigned = batch.filter(is_annotated=False)
+    awaiting = batch.filter(is_annotated=True, incomplete_file=False, review__isnull=True)
+    print(awaiting)
+    incomplete = batch.filter(incomplete_file=True)
+    via_assigned = batch.filter(is_annotated=False, incomplete_file=False)
+    via_incomplete = IncompleteBatch.objects.filter(batch__annotator=user.annotator)
+
+    batch_list = [assigned, awaiting, incomplete, batch, via_assigned, via_incomplete]
+
+    return batch_list
