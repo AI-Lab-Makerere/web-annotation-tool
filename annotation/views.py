@@ -52,6 +52,7 @@ class HomePageView(LoginRequiredMixin, TemplateView):
                 "assigned2": batch_list[4].count(),
                 "awaiting": batch_list[5],
                 "awaitingXC": batch_list[5].count(),
+                "reviewed_count": batch_list[6].count(),
             })
 
         elif logged_in.is_admin:
@@ -70,6 +71,8 @@ class HomePageView(LoginRequiredMixin, TemplateView):
                 "awaitingX": batch_li[1],
                 "awaitingC": batch_li[1].count(),
                 "incompleteX": batch_li[2].count(),
+                "reviewed_count": batch_li[6].count(),
+                "reviewed": batch_li[6]
             })
 
         return context
@@ -230,6 +233,7 @@ class VGGImageAnnotator(LoginRequiredMixin, TemplateView):
                 "category": category,
                 "assigned": batch[4],
                 "incomplete": batch[5],
+                "reviewed": batch[6]
             })
 
         return context
@@ -269,16 +273,23 @@ class VGGImageAnnotator(LoginRequiredMixin, TemplateView):
                 filename = request.POST.get('filename')
                 file = request.FILES.get('file')
                 pk = request.POST.get('pk')
+                reviewed = request.POST.get('reviewed')
 
                 path = default_storage.save('files/' + filename, file)
                 batch = Batch.objects.filter(pk=pk)
-                incomplete = IncompleteBatch.objects.filter(batch=batch.first())
 
-                if incomplete.exists():
-                    incomplete.delete()
-                    batch.update(is_annotated=True, annotated_file=path, incomplete_file=False)
+                if reviewed == "none":
+                    incomplete = IncompleteBatch.objects.filter(batch=batch.first())
+
+                    if incomplete.exists():
+                        incomplete.delete()
+                        batch.update(is_annotated=True, annotated_file=path, incomplete_file=False)
+                    else:
+                        batch.update(is_annotated=True, annotated_file=path)
+
                 else:
-                    batch.update(is_annotated=True, annotated_file=path)
+                    batch.update(annotated_file=path, is_annotated_twice=True, review=None)
+
                 output = "successful"
 
             elif request.POST.get('action') == 'save_incomplete_file':
@@ -304,7 +315,27 @@ class VGGImageAnnotator(LoginRequiredMixin, TemplateView):
                 json_data = json.load(f)
                 output = json_data
 
-            # elif request.POST.get('action') == 'load_file_for_review':
+            elif request.POST.get('action') == 'load_file_for_review':
+                pk = request.POST.get('pk')
+                file = Batch.objects.get(pk=pk)
+                json_file = file.annotated_file.name
+                f = open('uploads/' + json_file, 'r')
+                json_data = json.load(f)
+                output = json_data
+
+            elif request.POST.get('action') == 'save_feedback':
+                blob = request.FILES.get('mydata')
+                filename = request.POST.get('filename')
+                message = request.POST.get('message')
+                annotations = request.POST.get('annotations')
+                pk = request.POST.get('pk')
+
+                batch = Batch.objects.filter(pk=pk)
+                path = default_storage.save('files/' + filename, blob)
+                batch.update(annotated_file=path, review=annotations, comment=message)
+                output = "successful"
+
+            # elif request.POST.get('action') == 'load_reviewed_file':
             else:
                 pk = request.POST.get('pk')
                 file = Batch.objects.get(pk=pk)
@@ -337,9 +368,11 @@ def leader_table(user):
     batches2 = batches3.filter(is_annotated=False)
     attributes = Attribute.objects.filter(leader=user.leader).count()
     awaiting = batches3.filter(is_annotated=True, review__isnull=True, incomplete_file=False)
-    print(awaiting)
+    reviewed = batches3.filter(is_annotated=True, review__isnull=False, incomplete_file=False)
 
-    batches_list = [batches1, batches2, attributes, batch, batches3, awaiting]
+    # print(reviewed)
+
+    batches_list = [batches1, batches2, attributes, batch, batches3, awaiting, reviewed]
 
     return batches_list
 
@@ -348,11 +381,12 @@ def annotator_table(user):
     batch = Batch.objects.filter(annotator=user.annotator)
     assigned = batch.filter(is_annotated=False)
     awaiting = batch.filter(is_annotated=True, incomplete_file=False, review__isnull=True)
-    print(awaiting)
+    reviewed = batch.filter(is_annotated=True, incomplete_file=False, review__isnull=False)
+    # print(reviewed)
     incomplete = batch.filter(incomplete_file=True)
     via_assigned = batch.filter(is_annotated=False, incomplete_file=False)
     via_incomplete = IncompleteBatch.objects.filter(batch__annotator=user.annotator)
 
-    batch_list = [assigned, awaiting, incomplete, batch, via_assigned, via_incomplete]
+    batch_list = [assigned, awaiting, incomplete, batch, via_assigned, via_incomplete, reviewed]
 
     return batch_list

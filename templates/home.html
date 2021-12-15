@@ -3,6 +3,7 @@
 {% block content %}
     {{ categories | json_script:"cat" }}
     {{ attributes | json_script:"attr" }}
+
     <main>
         <div class="heading">
             <h4 class="title"></h4>
@@ -207,7 +208,7 @@
                                                     <td>{{ batches }}</td>
                                                     <td>{{ assigned2 }}</td>
                                                     <td>{{ awaitingXC }}</td>
-                                                    <td></td>
+                                                    <td>{{ reviewed_count }}</td>
                                                     <td></td>
                                                 </tr>
                                                 </tbody>
@@ -340,7 +341,7 @@
                                         </tr>
                                         <tr>
                                             <td>Reviewed</td>
-                                            <td></td>
+                                            <td>{{ reviewed_count }}</td>
                                         </tr>
                                         <tr>
                                             <td>Completed</td>
@@ -382,6 +383,24 @@
                                 <div class="card" style="width: 100%; margin-top: 10px">
                                     <div class="card-body">
                                         <span class="card-title">Reviewed Batches</span>
+                                        <div class="unassigned table-wrapper-scroll-y my-custom-scrollbar" style="margin-top: 10px; display: block">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                <tr style="font-size: 13px" class="text-center">
+                                                    <th scope="col">Batch</th>
+                                                    <th scope="col">Reviewed On</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for batch in reviewed %}
+                                                        <tr style="font-size: 13px" class="text-center">
+                                                            <td>{{ batch.batch_name }}</td>
+                                                            <td>{{ batch.last_updated }}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

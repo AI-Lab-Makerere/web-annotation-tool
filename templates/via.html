@@ -60,6 +60,7 @@
      {{ name | json_script:"pn" }}
      {{ category | json_script:"cat" }}
      {{ request.user.username | json_script:"user_id" }}
+     {{ request.user.is_team_leader | json_script:"leader" }}
     <!--
         SVG icon set definitions
         Material icons downloaded from https://material.io/icons
@@ -234,14 +235,6 @@
 
             </ul>
           </li>
-          <li>Review Annotations
-            <ul>
-              {% csrf_token %}
-              {% for batch in awaiting %}
-                  <li class="awaiting" name="{{ batch.pk }}">{{ batch.batch_name }}</li>
-              {% endfor %}
-            </ul>
-          </li>
           {% if request.user.is_annotator %}
               <li>Load Files
                 <ul>
@@ -260,6 +253,23 @@
                           <span class="in-id" style="display: none">{{ batch.pk }}</span>
                         </li>
                     {% endfor %}
+                </ul>
+              </li>
+              <li>Annotations to Review
+                <ul>
+                  {% csrf_token %}
+                  {% for batch in reviewed %}
+                      <li class="review" name="{{ batch.pk }}" value="{{ batch.comment }}">{{ batch.batch_name }}</li>
+                  {% endfor %}
+                </ul>
+              </li>
+          {% elif request.user.is_team_leader %}
+               <li>Review Annotations
+                <ul>
+                  {% csrf_token %}
+                  {% for batch in awaiting %}
+                      <li class="awaiting" name="{{ batch.pk }}">{{ batch.batch_name }}</li>
+                  {% endfor %}
                 </ul>
               </li>
           {% endif %}
@@ -317,7 +327,7 @@
           <svg onclick="incomplete_project_save_with_confirm()" viewbox="0 0 24 24"><use xlink:href="#icon_fileupload"></use><title>Save Incomplete Project</title></svg>
           <svg onclick="project_save_with_confirm()" viewbox="0 0 24 24"><use xlink:href="#icon_save"></use><title>Save Project</title></svg>
         {% elif request.user.is_team_leader %}
-          <svg onclick="reviewed_project_save_with_confirm()" viewbox="0 0 24 24"><use xlink:href="#icon_save"></use><title>Save Reviewed Project</title></svg>
+          <svg onclick="project_save_with_confirm()" viewbox="0 0 24 24"><use xlink:href="#icon_save"></use><title>Save Reviewed Project</title></svg>
         {% endif %}
         <svg onclick="settings_panel_toggle()" viewbox="0 0 24 24"><use xlink:href="#icon_settings"></use><title>Update Project Settings</title></svg>
         <!--
@@ -824,41 +834,34 @@ POSSIBILITY OF SUCH DAMAGE.
          items like Keyboard Shortcut hidden under the attributes panel -->
     <div style="width: 100%;" id="vertical_space"></div>
 
-     {% if request.user.is_annotator %}
-        <div class="popup2">
-      <div class="popup_content">
-        <img src="{% static 'images/close.jpg' %}" alt="Close" class="close2">
-            <div class="message2">
-              <span>Here is the feedback for your Annotations</span>
-              <div class="line"></div>
-              <div class="notes2">
-                 <textarea id="story2" name="story" rows="10" cols="55" placeholder="Please additional information for Bad Annotations"></textarea>
-              </div>
-            </div>
-
-      </div>
-    </div>
-     {% elif request.user.is_team_leader %}
         <div class="popup">
-      <div class="popup_content">
-        <img src="{% static 'images/close.jpg' %}" alt="Close" class="close">
-            <div class="message2">
-              <span>Please provide your feedback to the loaded Annotations</span>
-              <div class="line"></div>
-              <div class="radios">
-                <button class="popup-btn" id="good">Good Annotations</button>
-                <button class="popup-btn" id="bad">Bad Annotations</button>
-              </div>
-              <div class="notes">
-                 <textarea id="story" name="story" rows="4" cols="55" placeholder="Please additional information for Bad Annotations"></textarea>
-              </div>
-
-               <button class="popup-btn2" id="annotate-btn">Submit</button>
-            </div>
-
-      </div>
-    </div>
-     {% endif %}
+          <div class="popup_content">
+            <img src="{% static 'images/close.jpg' %}" alt="Close" class="close">
+            {% if request.user.is_annotator %}
+                <div class="message2">
+                  <span>Here is the feedback for your Annotations</span>
+                  <div class="line"></div>
+                  <div class="notes2">
+                     <textarea id="story2" name="story" rows="13" cols="53" placeholder="Please additional information for Bad Annotations"></textarea>
+                  </div>
+                </div>
+            {% elif request.user.is_team_leader %}
+                 <div class="message2">
+                  <span>Please provide your feedback to the loaded Annotations</span>
+                  <div class="line"></div>
+                  <div class="radios">
+                    <button class="popup-btn" id="good">Good Annotations</button>
+                    <button class="popup-btn" id="bad">Bad Annotations</button>
+                  </div>
+                  <div class="notes">
+                     <textarea id="story" name="story" rows="7" cols="53" placeholder="Please additional information for Bad Annotations"></textarea>
+                  </div>
+                   {% csrf_token %}
+                   <button class="popup-btn2" id="feedback-btn">Submit</button>
+                </div>
+            {% endif %}
+          </div>
+        </div>
 
     <!-- DEMO SCRIPT AUTOMATICALLY INSERTED BY VIA PACKER SCRIPT -->
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>

@@ -317,6 +317,11 @@ let primary_key = "none"
 var pn = JSON.parse(document.getElementById('pn').textContent);
 var cat = JSON.parse(document.getElementById('cat').textContent);
 var user_id = JSON.parse(document.getElementById('user_id').textContent);
+var leader_value = JSON.parse(document.getElementById('leader').textContent);
+let annotations = 'none'
+let data_BlobX = 'none'
+let filenameX = 'none'
+let reviewed = 'none'
 //
 // Data structure to store metadata about file and regions
 //
@@ -7187,10 +7192,10 @@ function project_save_with_confirm() {
     show_message("No file was loaded for annotations")
   }else {
     var config = {'title':'Save Project' };
-    var input = { 'project_name': { type:'text', name:'Project Name', value:_via_settings.project.name, disabled:false, size:30 },
-                  'save_annotations':{ type:'checkbox', name:'Save region and file annotations (i.e. manual annotations)', checked:true, disabled:false},
-                  'save_attributes':{ type:'checkbox', name:'Save region and file attributes.', checked:true},
-                  'save_via_settings':{ type:'checkbox', name:'Save VIA application settings', checked:true},
+    var input = { 'project_name': { type:'text', name:'Project Name', value:_via_settings.project.name, disabled:true, size:30 },
+                  'save_annotations':{ type:'checkbox', name:'Save region and file annotations (i.e. manual annotations)', checked:true, disabled:true },
+                  'save_attributes':{ type:'checkbox', name:'Save region and file attributes.', checked:true, disabled:true,},
+                  'save_via_settings':{ type:'checkbox', name:'Save VIA application settings', checked:true, disabled:true,},
                   //                'save_base64_data':{ type:'checkbox', name:'Save base64 data of images (if present)', checked:false},
                   //                'save_images':{type:'checkbox', 'name':'Save images <span class="warning">(WARNING: only recommended for projects containing small number of images)</span>', value:false},
                 };
@@ -7213,12 +7218,17 @@ function project_save_confirmed(input) {
                        '_via_image_id_list': _via_image_id_list
                      };
 
-  var filename = input.project_name.value + '.json';
-  var data_blob = new Blob( [JSON.stringify(_via_project)],
+  filenameX = input.project_name.value + '.json';
+  data_BlobX = new Blob( [JSON.stringify(_via_project)],
                             {type: 'text/json;charset=utf-8'});
 
   // save_data_to_local_file(data_blob, filename);
-  save_data_to_server(data_blob, filename);
+  // save_data_to_server(data_blob, filename);
+  if(leader_value === true){
+      document.querySelector(".popup").style.display = "flex";
+  }else {
+     save_data_to_server(data_BlobX, filenameX);
+  }
 
   user_input_default_cancel_handler();
 }
@@ -10216,6 +10226,7 @@ function save_data_to_server(data_blob, filename) {
      formData.append('filename', filename)
      formData.append('file', data_blob)
      formData.append('action', 'save_file')
+     formData.append('reviewed', reviewed)
     $.ajax({
         method: 'POST',
         url: "/via/",
@@ -10344,6 +10355,160 @@ $(document).ready(function () {
                 var data_blob = new Blob( [JSON.stringify(upload)], {type: 'text/json;charset=utf-8'});
                 load_text_file(data_blob, project_open_parse_json_file);
                 primary_key = pk
+                show_message("File Annotations Loaded Successfully")
+            },
+            error: function (error) {
+                show_message("There was an error, Please try again later")
+            }
+        });
+
+    });
+
+});
+
+document.querySelector(".close").addEventListener("click", function(){
+      document.querySelector(".popup").style.display = "none";
+})
+
+// document.querySelector(".close2").addEventListener("click", function(){
+//       document.querySelector(".popup2").style.display = "none";
+// })
+
+$(document).ready(function () {
+
+    $("#good").click(function () {
+
+        var goodBtn = document.getElementById("good")
+        var badBtn = document.getElementById("bad")
+
+        var color = $('#good').css("background-color");
+        var rgbb = "rgb(255, 255, 255)"  //white
+        if(color == rgbb){
+            goodBtn.style = `color: #fff;
+                            background-color: #212121;
+                            border: 2px solid #212121;`
+
+            badBtn.style = `color: #212121;
+                            background-color: #fff;
+                            border: 2px solid #e6e6e6;`
+
+            annotations = "Good Annotations"
+        }else {
+            goodBtn.style = `color: #212121;
+                            background-color: #fff;
+                            border: 2px solid #e6e6e6;`
+
+            annotations = "none"
+        }
+
+    });
+
+});
+
+$(document).ready(function () {
+
+    $("#bad").click(function () {
+
+        var goodBtn = document.getElementById("good")
+        var badBtn = document.getElementById("bad")
+
+        var color = $('#bad').css("background-color");
+        var rgbb = "rgb(255, 255, 255)"  //white
+        if(color == rgbb){
+            badBtn.style = `color: #fff;
+                            background-color: #212121;
+                            border: 2px solid #212121;`
+
+            goodBtn.style = `color: #212121;
+                            background-color: #fff;
+                            border: 2px solid #e6e6e6;`
+
+            annotations = "Bad Annotations"
+        }else {
+            badBtn.style = `color: #212121;
+                            background-color: #fff;
+                            border: 2px solid #e6e6e6;`
+
+            annotations = "none"
+        }
+
+    });
+
+});
+
+$(document).ready(function () {
+
+    $("#feedback-btn").click(function () {
+
+       let message = $('#story').val()
+       if (annotations === 'none'){
+          show_message('Please select if the Annotations are good or bad');
+       }else {
+          if(!message && annotations == "Bad Annotations"){
+             show_message('Please provide some additional information to support your decision');
+          }else {
+                let formData = new FormData();
+                formData.append('mydata', data_BlobX)  // Add blob to form data
+                formData.append('filename', filenameX)
+                formData.append('pk', primary_key)
+                formData.append('message', message)
+                formData.append('annotations', annotations)
+                formData.append('action', 'save_feedback')
+
+                 $.ajax({
+                    method: 'POST',
+                    url: "/via/",
+                    data: formData,
+                    processData: false,
+                    contentType : false,
+                    success: function (resp) {
+                         document.querySelector(".popup").style.display = "none";
+                         show_message('Feedback Saved Successfully');
+                         $('#story').val('');
+                    },
+                    error: function (error) {
+                        // console.log("Error");
+                        show_message('There is an error, Please try again later');
+                    }
+                });
+          }
+       }
+
+    });
+
+});
+
+$(document).ready(function () {
+
+    $(".review").click(function () {
+        $.ajaxSetup({
+            headers: {
+                "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+            }
+        });
+
+        let pk = $(this).attr("name")
+        let comment = $(this).attr("value")
+        // console.log(comment)
+        let popup2 = document.querySelector(".popup")
+        $('#story2').val(comment);
+
+        let formData = new FormData();
+        formData.append('pk', pk)
+        formData.append('action', 'load_reviewed_file')
+        $.ajax({
+            method: 'POST',
+            url: "/via/",
+            data: formData,
+            processData: false,
+            contentType : false,
+            success: function (resp) {
+                let upload = resp.upload
+                var data_blob = new Blob( [JSON.stringify(upload)], {type: 'text/json;charset=utf-8'});
+                load_text_file(data_blob, project_open_parse_json_file);
+                primary_key = pk
+                popup2.style.display = "flex";
+                reviewed = 'yes'
                 show_message("File Annotations Loaded Successfully")
             },
             error: function (error) {
