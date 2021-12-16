@@ -10330,6 +10330,8 @@ $(document).ready(function () {
 
 });
 
+let commentY = 'none'
+
 $(document).ready(function () {
 
     $(".awaiting").click(function () {
@@ -10340,6 +10342,7 @@ $(document).ready(function () {
         });
 
         let pk = $(this).attr("name")
+        commentY = $(this).attr("value")
 
         let formData = new FormData();
         formData.append('pk', pk)
@@ -10355,6 +10358,10 @@ $(document).ready(function () {
                 var data_blob = new Blob( [JSON.stringify(upload)], {type: 'text/json;charset=utf-8'});
                 load_text_file(data_blob, project_open_parse_json_file);
                 primary_key = pk
+                if (commentY !== 'None'){
+                   $('.popup2').css({'display': 'flex'})
+                   $('#story4').val(commentY);
+                }
                 show_message("File Annotations Loaded Successfully")
             },
             error: function (error) {
@@ -10370,9 +10377,9 @@ document.querySelector(".close").addEventListener("click", function(){
       document.querySelector(".popup").style.display = "none";
 })
 
-// document.querySelector(".close2").addEventListener("click", function(){
-//       document.querySelector(".popup2").style.display = "none";
-// })
+document.querySelector(".close2").addEventListener("click", function(){
+      document.querySelector(".popup2").style.display = "none";
+})
 
 $(document).ready(function () {
 
@@ -10478,6 +10485,8 @@ $(document).ready(function () {
 
 });
 
+let commentX = 'none'
+
 $(document).ready(function () {
 
     $(".review").click(function () {
@@ -10488,10 +10497,10 @@ $(document).ready(function () {
         });
 
         let pk = $(this).attr("name")
-        let comment = $(this).attr("value")
+        commentX = $(this).attr("value")
         // console.log(comment)
         let popup2 = document.querySelector(".popup")
-        $('#story2').val(comment);
+
 
         let formData = new FormData();
         formData.append('pk', pk)
@@ -10508,6 +10517,8 @@ $(document).ready(function () {
                 load_text_file(data_blob, project_open_parse_json_file);
                 primary_key = pk
                 popup2.style.display = "flex";
+                $('.view-feedback').css({'display': 'flex'})
+                $('#story2').val(commentX);
                 reviewed = 'yes'
                 show_message("File Annotations Loaded Successfully")
             },
@@ -10515,6 +10526,18 @@ $(document).ready(function () {
                 show_message("There was an error, Please try again later")
             }
         });
+
+    });
+
+});
+
+$(document).ready(function ()  {
+
+    $(".view-feedback").click(function () {
+
+        let popup2 = document.querySelector(".popup")
+        popup2.style.display = "flex";
+        $('#story2').val(commentX);
 
     });
 

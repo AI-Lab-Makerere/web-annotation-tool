@@ -11,6 +11,9 @@ title.innerHTML = "Welcome to the " + project_name + " Annotation Tool"
 cat = JSON.parse(document.getElementById('cat').textContent);
 categoryList(cat);
 
+if (cat.length === 0){
+    document.getElementById('team').style.pointerEvents = 'none'
+}
 
 $(document).ready(function () {
 

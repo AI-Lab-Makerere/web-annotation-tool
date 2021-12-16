@@ -268,7 +268,7 @@
                 <ul>
                   {% csrf_token %}
                   {% for batch in awaiting %}
-                      <li class="awaiting" name="{{ batch.pk }}">{{ batch.batch_name }}</li>
+                      <li class="awaiting" name="{{ batch.pk }}" value="{{ batch.comment }}">{{ batch.batch_name }}</li>
                   {% endfor %}
                 </ul>
               </li>
@@ -395,6 +395,9 @@
             </div>
           </div>
           <div id="project_tools_panel">
+            <div class="button_panel">
+              <span class="button view-feedback" title="View feedback for these Annotations" style="margin-top: 10px; display: none">Feedback</span>
+            </div>
             <div class="button_panel" style="margin:0.1rem 0;" >
               <select style="width:48%" id="filelist_preset_filters_list" onchange="img_fn_list_onpresetfilter_select()" title="Filter file list using predefined filters">
                 <option value="all">All files</option>
@@ -408,13 +411,13 @@
             </div>
           </div>
           <div id="img_fn_list"></div>
-          <p>
-            <div class="button_panel">
-              <span class="button" onclick="sel_local_images()" title="Add new file from local disk">Add Files</span>
-              <span class="button" onclick="project_file_add_url_with_input()" title="Add new file using URL">Add URL</span>
-              <span class="button" onclick="project_file_remove_with_confirm()" title="Remove selected file (i.e. file currently being shown) from project">Remove</span>
-            </div>
-          </p>
+<!--          <p>-->
+<!--            <div class="button_panel">-->
+<!--              <span class="button" onclick="sel_local_images()" title="Add new file from local disk">Add Files</span>-->
+<!--              <span class="button" onclick="project_file_add_url_with_input()" title="Add new file using URL">Add URL</span>-->
+<!--              <span class="button" onclick="project_file_remove_with_confirm()" title="Remove selected file (i.e. file currently being shown) from project">Remove</span>-->
+<!--            </div>-->
+<!--          </p>-->
         </div>
 
         <!-- Attributes -->
@@ -834,34 +837,57 @@ POSSIBILITY OF SUCH DAMAGE.
          items like Keyboard Shortcut hidden under the attributes panel -->
     <div style="width: 100%;" id="vertical_space"></div>
 
-        <div class="popup">
-          <div class="popup_content">
-            <img src="{% static 'images/close.jpg' %}" alt="Close" class="close">
-            {% if request.user.is_annotator %}
-                <div class="message2">
-                  <span>Here is the feedback for your Annotations</span>
-                  <div class="line"></div>
-                  <div class="notes2">
-                     <textarea id="story2" name="story" rows="13" cols="53" placeholder="Please additional information for Bad Annotations"></textarea>
-                  </div>
+    <div class="popup">
+      <div class="popup_content">
+        <img src="{% static 'images/close.jpg' %}" alt="Close" class="close">
+        {% if request.user.is_annotator %}
+            <div class="message2">
+              <span>Here is the feedback for your Annotations</span>
+              <div class="line"></div>
+              <div class="notes2">
+                 <textarea id="story2" name="story" rows="13" cols="53" placeholder=""></textarea>
+              </div>
+            </div>
+        {% elif request.user.is_team_leader %}
+             <div class="message2">
+              <span>Please provide your feedback to the loaded Annotations</span>
+              <div class="line"></div>
+              <div class="radios">
+                <button class="popup-btn" id="good">Good Annotations</button>
+                <button class="popup-btn" id="bad">Bad Annotations</button>
+              </div>
+              <div class="notes">
+                 <textarea id="story" name="story" rows="7" cols="53" placeholder="Please additional information for Bad Annotations"></textarea>
+              </div>
+               {% csrf_token %}
+               <button class="popup-btn2" id="feedback-btn">Submit</button>
+            </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="popup2">
+      <div class="popup_content">
+        <img src="{% static 'images/close.jpg' %}" alt="Close" class="close2">
+        {% if request.user.is_annotator %}
+            <div class="message2">
+              <span>Here is the feedback for your Annotations</span>
+              <div class="line"></div>
+              <div class="notes2">
+                 <textarea id="story3" name="story" rows="13" cols="53" placeholder=""></textarea>
+              </div>
+            </div>
+        {% elif request.user.is_team_leader %}
+             <div class="message2">
+                <span>Here is the feedback you provided for these Annotations</span>
+                <div class="line"></div>
+                <div class="notes2">
+                   <textarea id="story4" name="story" rows="13" cols="53" placeholder=""></textarea>
                 </div>
-            {% elif request.user.is_team_leader %}
-                 <div class="message2">
-                  <span>Please provide your feedback to the loaded Annotations</span>
-                  <div class="line"></div>
-                  <div class="radios">
-                    <button class="popup-btn" id="good">Good Annotations</button>
-                    <button class="popup-btn" id="bad">Bad Annotations</button>
-                  </div>
-                  <div class="notes">
-                     <textarea id="story" name="story" rows="7" cols="53" placeholder="Please additional information for Bad Annotations"></textarea>
-                  </div>
-                   {% csrf_token %}
-                   <button class="popup-btn2" id="feedback-btn">Submit</button>
-                </div>
-            {% endif %}
-          </div>
-        </div>
+            </div>
+        {% endif %}
+      </div>
+    </div>
 
     <!-- DEMO SCRIPT AUTOMATICALLY INSERTED BY VIA PACKER SCRIPT -->
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>

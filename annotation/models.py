@@ -56,6 +56,7 @@ class Batch(models.Model):
     review = models.CharField(max_length=255, null=True, blank=True,)
     comment = models.TextField(null=True, blank=True)
     incomplete_file = models.BooleanField(default=False)
+    created = models.DateField(auto_now_add=True, auto_now=False)
     last_updated = models.DateField(auto_now_add=False, auto_now=True)
 
     def __str__(self):

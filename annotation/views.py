@@ -38,6 +38,8 @@ class HomePageView(LoginRequiredMixin, TemplateView):
         elif logged_in.is_annotator:
             category = logged_in.category
             batch_li = annotator_table(logged_in)
+        else:
+            batches = Batch.objects.filter(review="Good Annotations")
 
         context = super(HomePageView, self).get_context_data(**kwargs)
 
@@ -53,6 +55,9 @@ class HomePageView(LoginRequiredMixin, TemplateView):
                 "awaiting": batch_list[5],
                 "awaitingXC": batch_list[5].count(),
                 "reviewed_count": batch_list[6].count(),
+                "reviewed": batch_list[6],
+                "annotated": batch_list[7],
+                "annotated_count": batch_list[7].count(),
             })
 
         elif logged_in.is_admin:
@@ -60,6 +65,7 @@ class HomePageView(LoginRequiredMixin, TemplateView):
                 "name": project,
                 "categories": categories,
                 "leaders": leaders,
+                "batches": batches,
             })
 
         else:
@@ -72,7 +78,9 @@ class HomePageView(LoginRequiredMixin, TemplateView):
                 "awaitingC": batch_li[1].count(),
                 "incompleteX": batch_li[2].count(),
                 "reviewed_count": batch_li[6].count(),
-                "reviewed": batch_li[6]
+                "reviewed": batch_li[6],
+                "annotated": batch_li[7],
+                "annotated_count": batch_li[7].count(),
             })
 
         return context
@@ -278,6 +286,14 @@ class VGGImageAnnotator(LoginRequiredMixin, TemplateView):
                 path = default_storage.save('files/' + filename, file)
                 batch = Batch.objects.filter(pk=pk)
 
+                logged_in = self.request.user
+
+                bat = Batch.objects.get(pk=pk)
+                name = bat.batch_name
+                email = bat.leader.user.email
+                username = bat.leader.user.username
+                user1 = logged_in.username
+
                 if reviewed == "none":
                     incomplete = IncompleteBatch.objects.filter(batch=batch.first())
 
@@ -287,8 +303,16 @@ class VGGImageAnnotator(LoginRequiredMixin, TemplateView):
                     else:
                         batch.update(is_annotated=True, annotated_file=path)
 
+                    message = "Hello " + username + ", \n" + user1 + " has finished annotating this batch - " \
+                              + name + " \nYou can go on and review it."
+                    mailing(email, message)
+
                 else:
                     batch.update(annotated_file=path, is_annotated_twice=True, review=None)
+                    message = "Hello " + username + ", \n" \
+                              + user1 + " has finished making corrections to this batch - " \
+                              + name + " \nYou can go on and review it again."
+                    mailing(email, message)
 
                 output = "successful"
 
@@ -333,6 +357,19 @@ class VGGImageAnnotator(LoginRequiredMixin, TemplateView):
                 batch = Batch.objects.filter(pk=pk)
                 path = default_storage.save('files/' + filename, blob)
                 batch.update(annotated_file=path, review=annotations, comment=message)
+                logged_in = self.request.user
+                if annotations == 'Good Annotations':
+                    Leader.objects.filter(user=logged_in).update(annotated=F('annotated') + 1)
+                else:
+                    bat = Batch.objects.get(pk=pk)
+                    name = bat.batch_name
+                    email = bat.annotator.user.email
+                    username = bat.annotator.user.username
+                    user1 = logged_in.username
+                    message = "Hello " + username + ", \n" \
+                              + user1 + " has finished reviewing this batch - " \
+                              + name + " \nYou can go it and make the required correction."
+                    mailing(email, message)
                 output = "successful"
 
             # elif request.POST.get('action') == 'load_reviewed_file':
@@ -348,7 +385,8 @@ class VGGImageAnnotator(LoginRequiredMixin, TemplateView):
                 "upload": output
             }
 
-            return HttpResponse(json.dumps(my_context, indent=4, sort_keys=True, default=str), content_type='application/json')
+            return HttpResponse(json.dumps(my_context, indent=4, sort_keys=True, default=str),
+                                content_type='application/json')
 
 
 def project_name():
@@ -368,11 +406,12 @@ def leader_table(user):
     batches2 = batches3.filter(is_annotated=False)
     attributes = Attribute.objects.filter(leader=user.leader).count()
     awaiting = batches3.filter(is_annotated=True, review__isnull=True, incomplete_file=False)
-    reviewed = batches3.filter(is_annotated=True, review__isnull=False, incomplete_file=False)
+    reviewed = batches3.filter(is_annotated=True, review="Bad Annotations", incomplete_file=False)
+    annotated = batch.filter(review="Good Annotations")
 
     # print(reviewed)
 
-    batches_list = [batches1, batches2, attributes, batch, batches3, awaiting, reviewed]
+    batches_list = [batches1, batches2, attributes, batch, batches3, awaiting, reviewed, annotated]
 
     return batches_list
 
@@ -381,12 +420,17 @@ def annotator_table(user):
     batch = Batch.objects.filter(annotator=user.annotator)
     assigned = batch.filter(is_annotated=False)
     awaiting = batch.filter(is_annotated=True, incomplete_file=False, review__isnull=True)
-    reviewed = batch.filter(is_annotated=True, incomplete_file=False, review__isnull=False)
+    reviewed = batch.filter(is_annotated=True, incomplete_file=False, review="Bad Annotations")
     # print(reviewed)
     incomplete = batch.filter(incomplete_file=True)
     via_assigned = batch.filter(is_annotated=False, incomplete_file=False)
     via_incomplete = IncompleteBatch.objects.filter(batch__annotator=user.annotator)
+    annotated = batch.filter(review="Good Annotations")
 
-    batch_list = [assigned, awaiting, incomplete, batch, via_assigned, via_incomplete, reviewed]
+    batch_list = [assigned, awaiting, incomplete, batch, via_assigned, via_incomplete, reviewed, annotated]
 
     return batch_list
+
+
+def mailing(user, message):
+    send_mail(subject="Lacuna Annotation Project", message=message, from_email="admin@test.com", recipient_list=[user])
