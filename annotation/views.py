@@ -370,7 +370,7 @@ class VGGImageAnnotator(LoginRequiredMixin, TemplateView):
                               + user1 + " has finished reviewing this batch - " \
                               + name + " \nYou can go it and make the required correction."
                     mailing(email, message)
-                output = "successful"
+                output = "successfully"
 
             # elif request.POST.get('action') == 'load_reviewed_file':
             else:
