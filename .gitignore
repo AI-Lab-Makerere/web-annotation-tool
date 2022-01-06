@@ -1,0 +1,5 @@
+db.sqlite3
+annotation/migrations
+venv
+.DS_Store
+static/.DS_Store
