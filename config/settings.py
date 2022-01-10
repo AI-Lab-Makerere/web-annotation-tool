@@ -141,7 +141,13 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 # this code shows the emails sent in the IDE terminal
 # if you want to configure this to point to a real mailing server then edit this code below
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL=""
+EMAIL_USE_TLS = ""
+EMAIL_HOST = ""
+EMAIL_HOST_USER = ""
+EMAIL_HOST_PASSWORD = ""
+EMAIL_PORT =0
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
