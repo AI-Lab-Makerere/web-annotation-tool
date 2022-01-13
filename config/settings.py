@@ -12,21 +12,33 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 import os
+import environ
+
+
+env = environ.Env(
+    # set casting, default value
+    DEBUG=(bool, False))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+# Take environment variables from .env file
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-p)6rz8$t2g4$#r3&#md)k7w%9613fif4yx=92!c_3g-1pexvob'
+# SECRET_KEY = 'django-insecure-p)6rz8$t2g4$#r3&#md)k7w%9613fif4yx=92!c_3g-1pexvob'
+SECRET_KEY = env('SECRET_KEY')
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG')
+print(DEBUG)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 
 
 # Application definition
@@ -142,12 +154,12 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 # this code shows the emails sent in the IDE terminal
 # if you want to configure this to point to a real mailing server then edit this code below
 # EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-DEFAULT_FROM_EMAIL=""
-EMAIL_USE_TLS = ""
-EMAIL_HOST = ""
-EMAIL_HOST_USER = ""
-EMAIL_HOST_PASSWORD = ""
-EMAIL_PORT =0
+DEFAULT_FROM_EMAIL=env('DEFAULT_FROM_EMAIL')
+EMAIL_USE_TLS = env('EMAIL_USE_TLS')
+EMAIL_HOST = env('EMAIL_HOST')
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+EMAIL_PORT =env('EMAIL_PORT')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

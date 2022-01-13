@@ -16,7 +16,7 @@ There are 2 ways to setup using docker i.e Create and manage your own image OR P
 
    - Before building your image that will eventually be deployed, there are some configurations/settings that you need to personalize in the system
    - One of them is setting the email credentials for the mail server to enable smooth sending of emails. 
-   - Navigate to the setting.py file in the config folder and set your email credentials in the following variables `DEFAULT_FROM_EMAIL, EMAIL_USE_TLS, EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD` & `EMAIL_PORT` 
+   - Create a .env file by renaming the example.env file at the root of the project and set your email credentials and other defaults for the following variables `DEFAULT_FROM_EMAIL, EMAIL_USE_TLS, EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD` `,EMAIL_PORT, ALLOWED_HOSTS (here add your server ip and domain to the list), SECRET_KEY (you can generate a new secret key) ` 
    - You can also open the Dockerfile at the root of the project and see if you need to modify anything say the port on which you want the application containers to be exposed at. You can make any other code related changes to the project at this stage before creating the actual image. 
    - Next move on to building the docker image for the project: navigate to the project root and run the following command `docker build . -t <name-the-image:tag-name>` E.g `docker build . -t annotator:v1` 
 
@@ -65,7 +65,7 @@ There are 2 ways to setup using docker i.e Create and manage your own image OR P
 ### OPTION 2: USE IMAGE MAINTATINED  BY AIR MAKERERE 
 
 ##### 1. Pull the image 
-  - From your server or pc having docker installed, pull the image of the annotion tool using the command `docker pull airlab-muk/annotion:latest` 
+  - From your server or pc having docker installed, pull the image of the annotion tool using the command `docker pull airlabmakerere/annotation-tool:latest` 
   
 #### 2. Run image containers
 
@@ -85,5 +85,6 @@ There are 2 ways to setup using docker i.e Create and manage your own image OR P
 
 
 
+  - While still in the terminal, update the .env file at the root directory. Nano into .env through `nano .env` then update the following environment variables:  `DEFAULT_FROM_EMAIL, EMAIL_USE_TLS, EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD` `,EMAIL_PORT, ALLOWED_HOSTS (here add your server ip and domain to the list), SECRET_KEY (you can generate a new secret key) ` 
   - Once you have set up the admin account, you can stop and re-run the containers in the background. Use `Ctr + c` to stop the currently running container. 
   - To run the container in the background run the following command `docker run -p 8020:8020 <image-name:tag-name>`
