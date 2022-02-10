@@ -1,4 +1,46 @@
-# How to setup the Annotation T using Docker
+# About the Web Annotation Tool
+
+This is a django web application used for image data annotation. This app includes the [VGG Image Annotator (VIA)](https://www.robots.ox.ac.uk/~vgg/software/via/) application used for data annotation. While using the VIA tool one has to upload a text file with image links or upload one image at a time for annotation. With the developed web application, annotation can be done remotely without the need for each annotator to upload the images.
+
+### How it works
+
+This app is to be used by 3 user categories which include;
+
+#### 1. The System Admininstrator
+
+Roles
+
+   - Set up the application either by deploying a django application to a given server or run a docker image (This will be discussed later).
+   - Create a super user to be able to login.
+   - Change the project name.
+   - Submit categories of images to be annotated e.g if you are to annotate images of different crops (maize, beans, cassava) then create those categories.
+   - Create team leaders (more about this category below) and assign each team leader a category.
+
+#### 2. The Team Leader
+
+Roles
+
+   - Upload text files (batches) which contain various images' links.
+   - Create an attributes file which will be used by annotators (more about them later) for annotation.
+   - Create annotators and assign batches to them for annotation .
+   - Monitor the annotation progress, this includes;
+      - View annotated batches.
+      - Review the annotated batches.
+      - Download the annotated batches.
+
+#### 3. The Annotator
+
+   - Load the attributes which will be used while annotation.
+   - Annotate the assigned batches.
+   - Save the complete and incomplete annotations.
+   - Re-annotated the batches if the team leader identifies misktakes while reviewing the annotations.
+
+All these activities are done online, the annotation process happens on the [VIA](https://www.robots.ox.ac.uk/~vgg/software/via/) developed interface whic was integrated in this web app. With this application you can carryout annotation of images on any project remotely as you view the progress.
+
+If you don't want to deploy this django application you can either create your own docker image (instructions below) or use an already build and deployed docker image (instructions below)
+
+
+# How to setup the Annotation Tool using Docker
 
 **Assumption:** it's assumed that you have cloned this repository onto your server or desktop pc.
 
