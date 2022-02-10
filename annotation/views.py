@@ -143,7 +143,7 @@ class LeaderCreateView(LoginRequiredMixin, CreateView):
             message="You were added as a Team Leader here is your username \n" + user.username + "\nAccess this link (your app url) to reset your password",
             # you can change this line below to point to the right mail server
             # you can configure the mail server from the settings file config/settings EMAIL_BACKEND=
-            from_email="admin@test.com",
+            from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email]
         )
         return super(LeaderCreateView, self).form_valid(form)
@@ -185,7 +185,7 @@ class AnnotatorCreateView(LoginRequiredMixin, CreateView):
             message="You were added as an Annotator here is your username \n" + user.username + "\nAccess this link (your app url) to reset your password",
             # you can change this line below to point to the right mail server
             # you can configure the mail server from the settings file config/settings EMAIL_BACKEND=
-            from_email="admin@test.com",
+            from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email]
         )
         return super(AnnotatorCreateView, self).form_valid(form)
@@ -433,4 +433,4 @@ def annotator_table(user):
 
 
 def mailing(user, message):
-    send_mail(subject="Lacuna Annotation Project", message=message, from_email="admin@test.com", recipient_list=[user])
+    send_mail(subject="Lacuna Annotation Project", message=message, from_email=settings.DEFAULT_FROM_EMAIL, recipient_list=[user])
